@@ -1,0 +1,511 @@
+{
+  "description": "Survey - Voice",
+  "states": [
+    {
+      "name": "Trigger",
+      "type": "trigger",
+      "transitions": [
+        {
+          "event": "incomingMessage"
+        },
+        {
+          "next": "load_flow_data",
+          "event": "incomingCall"
+        },
+        {
+          "event": "incomingConversationMessage"
+        },
+        {
+          "next": "load_flow_data2",
+          "event": "incomingRequest"
+        },
+        {
+          "event": "incomingParent"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 40,
+          "y": -140
+        }
+      }
+    },
+    {
+      "name": "check_response_1",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "unknown_answer_1",
+          "event": "noMatch"
+        },
+        {
+          "next": "second_question",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "1-10",
+              "arguments": ["{{widgets.first_question.Digits}}"],
+              "type": "regex",
+              "value": "^(?:[1-9]|0[1-9]|10)$"
+            }
+          ]
+        },
+        {
+          "next": "second_question",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value blank",
+              "arguments": ["{{widgets.first_question.Digits}}"],
+              "type": "is_blank",
+              "value": "Is Blank"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.first_question.Digits}}",
+        "offset": {
+          "x": 160,
+          "y": 1340
+        }
+      }
+    },
+    {
+      "name": "send_results_to_server",
+      "type": "make-http-request",
+      "transitions": [
+        {
+          "next": "thank_you",
+          "event": "success"
+        },
+        {
+          "next": "thank_you",
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 590,
+          "y": 2170
+        },
+        "method": "POST",
+        "parameters": [
+          {
+            "value": "{{widgets.first_question.Digits}}",
+            "key": "question1"
+          },
+          {
+            "value": "{{widgets.second_question.Digits}}",
+            "key": "question2"
+          },
+          {
+            "value": "voice",
+            "key": "channel"
+          },
+          {
+            "value": "After Care",
+            "key": "surveyType"
+          }
+        ],
+        "url": "https://xxxxxxxxxxx.m.pipedream.net",
+        "timeout": 3600
+      }
+    },
+    {
+      "name": "first_question",
+      "type": "gather-input-on-call",
+      "transitions": [
+        {
+          "next": "check_response_1",
+          "event": "keypress"
+        },
+        {
+          "event": "speech"
+        },
+        {
+          "next": "check_response_1",
+          "event": "timeout"
+        }
+      ],
+      "properties": {
+        "voice": "Polly.Joanna-Neural",
+        "number_of_digits": 2,
+        "speech_timeout": "auto",
+        "offset": {
+          "x": 30,
+          "y": 1070
+        },
+        "loop": 1,
+        "finish_on_key": "#",
+        "say": "{{flow.variables.question1}}",
+        "language": "en-US",
+        "stop_gather": true,
+        "gather_language": "en",
+        "profanity_filter": "true",
+        "timeout": 3
+      }
+    },
+    {
+      "name": "unknown_answer_1",
+      "type": "say-play",
+      "transitions": [
+        {
+          "next": "first_question",
+          "event": "audioComplete"
+        }
+      ],
+      "properties": {
+        "voice": "Polly.Joanna-Neural",
+        "offset": {
+          "x": -420,
+          "y": 1230
+        },
+        "loop": 1,
+        "say": "I'm sorry, I didn't understand. Please enter a number from 1 - 10.",
+        "language": "en-US"
+      }
+    },
+    {
+      "name": "welcome",
+      "type": "say-play",
+      "transitions": [
+        {
+          "next": "first_question",
+          "event": "audioComplete"
+        }
+      ],
+      "properties": {
+        "voice": "Polly.Joanna-Neural",
+        "offset": {
+          "x": -100,
+          "y": 750
+        },
+        "loop": 1,
+        "say": "{{flow.variables.welcome}}",
+        "language": "en-US"
+      }
+    },
+    {
+      "name": "second_question",
+      "type": "gather-input-on-call",
+      "transitions": [
+        {
+          "next": "check_response_2",
+          "event": "keypress"
+        },
+        {
+          "event": "speech"
+        },
+        {
+          "next": "check_response_2",
+          "event": "timeout"
+        }
+      ],
+      "properties": {
+        "voice": "Polly.Joanna-Neural",
+        "number_of_digits": 2,
+        "speech_timeout": "auto",
+        "offset": {
+          "x": 310,
+          "y": 1620
+        },
+        "loop": 1,
+        "finish_on_key": "#",
+        "say": "{{flow.variables.question2}}",
+        "language": "en-US",
+        "stop_gather": true,
+        "gather_language": "en",
+        "profanity_filter": "true",
+        "timeout": 3
+      }
+    },
+    {
+      "name": "unknown_answer_3",
+      "type": "say-play",
+      "transitions": [
+        {
+          "next": "second_question",
+          "event": "audioComplete"
+        }
+      ],
+      "properties": {
+        "voice": "Polly.Joanna-Neural",
+        "offset": {
+          "x": -110,
+          "y": 1780
+        },
+        "loop": 1,
+        "say": "I'm sorry, I didn't understand. Please enter a number from 1 - 10.",
+        "language": "en-US"
+      }
+    },
+    {
+      "name": "check_response_2",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "unknown_answer_3",
+          "event": "noMatch"
+        },
+        {
+          "next": "send_results_to_server",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "1-10",
+              "arguments": ["{{widgets.second_question.Digits}}"],
+              "type": "regex",
+              "value": "^(?:[1-9]|0[1-9]|10)$"
+            }
+          ]
+        },
+        {
+          "next": "send_results_to_server",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value blank",
+              "arguments": ["{{widgets.second_question.Digits}}"],
+              "type": "is_blank",
+              "value": "Is Blank"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.second_question.Digits}}",
+        "offset": {
+          "x": 430,
+          "y": 1920
+        }
+      }
+    },
+    {
+      "name": "thank_you",
+      "type": "say-play",
+      "transitions": [
+        {
+          "event": "audioComplete"
+        }
+      ],
+      "properties": {
+        "voice": "Polly.Joanna-Neural",
+        "offset": {
+          "x": 600,
+          "y": 2410
+        },
+        "loop": 1,
+        "say": "{{flow.variables.thankYou}}",
+        "language": "en-US"
+      }
+    },
+    {
+      "name": "call_person",
+      "type": "make-outgoing-call-v2",
+      "transitions": [
+        {
+          "next": "check_human",
+          "event": "answered"
+        },
+        {
+          "event": "busy"
+        },
+        {
+          "event": "noAnswer"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "machine_detection_speech_threshold": "2400",
+        "detect_answering_machine": true,
+        "send_digits": "",
+        "sip_auth_username": "",
+        "offset": {
+          "x": 410,
+          "y": 500
+        },
+        "recording_status_callback": "",
+        "sip_auth_password": "",
+        "recording_channels": "mono",
+        "timeout": 60,
+        "machine_detection": "Enable",
+        "trim": "do-not-trim",
+        "record": false,
+        "machine_detection_speech_end_threshold": "1200",
+        "machine_detection_timeout": "30",
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "machine_detection_silence_timeout": "3000"
+      }
+    },
+    {
+      "name": "load_flow_data",
+      "type": "run-function",
+      "transitions": [
+        {
+          "next": "set_flow_data",
+          "event": "success"
+        },
+        {
+          "event": "fail"
+        }
+      ],
+      "properties": {
+        "service_sid": "ZSe22669429f18d4e2d4b7a2e5dc43ec2d",
+        "environment_sid": "ZE23edeb088a6b3f28431186d2371ee781",
+        "offset": {
+          "x": 10,
+          "y": 90
+        },
+        "function_sid": "ZHe128030685628eae395d4436ac13df9a",
+        "parameters": [
+          {
+            "value": "After Care",
+            "key": "surveyType"
+          },
+          {
+            "value": "voice",
+            "key": "channel"
+          }
+        ],
+        "url": "https://studio-ivr-functions-9959.twil.io/load-flow-data"
+      }
+    },
+    {
+      "name": "load_flow_data2",
+      "type": "run-function",
+      "transitions": [
+        {
+          "next": "set_flow_data2",
+          "event": "success"
+        },
+        {
+          "event": "fail"
+        }
+      ],
+      "properties": {
+        "service_sid": "ZSe22669429f18d4e2d4b7a2e5dc43ec2d",
+        "environment_sid": "ZE23edeb088a6b3f28431186d2371ee781",
+        "offset": {
+          "x": 400,
+          "y": 80
+        },
+        "function_sid": "ZHe128030685628eae395d4436ac13df9a",
+        "parameters": [
+          {
+            "value": "After Care",
+            "key": "surveyType"
+          },
+          {
+            "value": "voice",
+            "key": "channel"
+          }
+        ],
+        "url": "https://studio-ivr-functions-9959.twil.io/load-flow-data"
+      }
+    },
+    {
+      "name": "set_flow_data",
+      "type": "set-variables",
+      "transitions": [
+        {
+          "next": "welcome",
+          "event": "next"
+        }
+      ],
+      "properties": {
+        "variables": [
+          {
+            "value": "{{widgets.load_flow_data.parsed.welcome}}",
+            "key": "welcome"
+          },
+          {
+            "value": "{{widgets.load_flow_data.parsed.question1}}",
+            "key": "question1"
+          },
+          {
+            "value": "{{widgets.load_flow_data.parsed.question2}}",
+            "key": "question2"
+          },
+          {
+            "value": "{{widgets.load_flow_data.parsed.thankYou}}",
+            "key": "thankYou"
+          }
+        ],
+        "offset": {
+          "x": 0,
+          "y": 320
+        }
+      }
+    },
+    {
+      "name": "set_flow_data2",
+      "type": "set-variables",
+      "transitions": [
+        {
+          "next": "call_person",
+          "event": "next"
+        }
+      ],
+      "properties": {
+        "variables": [
+          {
+            "value": "{{widgets.load_flow_data2.parsed.welcome}}",
+            "key": "welcome"
+          },
+          {
+            "value": "{{widgets.load_flow_data2.parsed.question1}}",
+            "key": "question1"
+          },
+          {
+            "value": "{{widgets.load_flow_data2.parsed.question2}}",
+            "key": "question2"
+          },
+          {
+            "value": "{{widgets.load_flow_data2.parsed.thankYou}}",
+            "key": "thankYou"
+          }
+        ],
+        "offset": {
+          "x": 400,
+          "y": 290
+        }
+      }
+    },
+    {
+      "name": "check_human",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "event": "noMatch"
+        },
+        {
+          "next": "welcome",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value matches_any_of human, unknown",
+              "arguments": ["{{widgets.call_person.AnsweredBy}}"],
+              "type": "matches_any_of",
+              "value": "human, unknown"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.call_person.AnsweredBy}}",
+        "offset": {
+          "x": 420,
+          "y": 730
+        }
+      }
+    }
+  ],
+  "initial_state": "Trigger",
+  "flags": {
+    "allow_concurrent_calls": true
+  }
+}

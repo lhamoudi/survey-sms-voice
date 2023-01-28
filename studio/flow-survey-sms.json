@@ -1,0 +1,578 @@
+{
+  "description": "Simple Survey",
+  "states": [
+    {
+      "name": "Trigger",
+      "type": "trigger",
+      "transitions": [
+        {
+          "next": "load_flow_data2",
+          "event": "incomingMessage"
+        },
+        {
+          "event": "incomingCall"
+        },
+        {
+          "event": "incomingConversationMessage"
+        },
+        {
+          "next": "load_flow_data",
+          "event": "incomingRequest"
+        },
+        {
+          "event": "incomingParent"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 20,
+          "y": -160
+        }
+      }
+    },
+    {
+      "name": "first_question",
+      "type": "send-and-wait-for-reply",
+      "transitions": [
+        {
+          "next": "check_response_1",
+          "event": "incomingMessage"
+        },
+        {
+          "next": "send_results_to_server",
+          "event": "timeout"
+        },
+        {
+          "next": "error",
+          "event": "deliveryFailure"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 0,
+          "y": 680
+        },
+        "from": "{{flow.channel.address}}",
+        "body": "{{flow.variables.question1}}",
+        "timeout": "120"
+      }
+    },
+    {
+      "name": "check_response_1",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "unknown_answer_1",
+          "event": "noMatch"
+        },
+        {
+          "next": "second_question",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "1-10",
+              "arguments": ["{{widgets.first_question.inbound.Body}}"],
+              "type": "regex",
+              "value": "^(?:[1-9]|0[1-9]|10)$"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.first_question.inbound.Body}}",
+        "offset": {
+          "x": 0,
+          "y": 910
+        }
+      }
+    },
+    {
+      "name": "unknown_answer_1",
+      "type": "send-message",
+      "transitions": [
+        {
+          "next": "first_question",
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -410,
+          "y": 790
+        },
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "body": "I'm sorry, I didn't understand. Please enter a number from 1 - 10."
+      }
+    },
+    {
+      "name": "second_question",
+      "type": "send-and-wait-for-reply",
+      "transitions": [
+        {
+          "next": "check_response_2",
+          "event": "incomingMessage"
+        },
+        {
+          "next": "send_results_to_server",
+          "event": "timeout"
+        },
+        {
+          "next": "error",
+          "event": "deliveryFailure"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 0,
+          "y": 1160
+        },
+        "from": "{{flow.channel.address}}",
+        "body": "{{flow.variables.question2}}",
+        "timeout": "120"
+      }
+    },
+    {
+      "name": "check_response_2",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "unknown_answer_2",
+          "event": "noMatch"
+        },
+        {
+          "next": "third_question",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "1-10",
+              "arguments": ["{{widgets.second_question.inbound.Body}}"],
+              "type": "regex",
+              "value": "^(?:[1-9]|0[1-9]|10)$"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.second_question.inbound.Body}}",
+        "offset": {
+          "x": 0,
+          "y": 1380
+        }
+      }
+    },
+    {
+      "name": "unknown_answer_2",
+      "type": "send-message",
+      "transitions": [
+        {
+          "next": "second_question",
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": -410,
+          "y": 1280
+        },
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "body": "I'm sorry, I didn't understand. Please enter a number from 1 - 10."
+      }
+    },
+    {
+      "name": "third_question",
+      "type": "send-and-wait-for-reply",
+      "transitions": [
+        {
+          "next": "send_results_to_server",
+          "event": "incomingMessage"
+        },
+        {
+          "next": "send_results_to_server",
+          "event": "timeout"
+        },
+        {
+          "next": "error",
+          "event": "deliveryFailure"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 0,
+          "y": 1630
+        },
+        "from": "{{flow.channel.address}}",
+        "body": "{{flow.variables.question3}}",
+        "timeout": "120"
+      }
+    },
+    {
+      "name": "thank_you",
+      "type": "send-message",
+      "transitions": [
+        {
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 610,
+          "y": 2120
+        },
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "body": "{{flow.variables.thankYou}}"
+      }
+    },
+    {
+      "name": "send_results_to_server",
+      "type": "make-http-request",
+      "transitions": [
+        {
+          "next": "thank_you",
+          "event": "success"
+        },
+        {
+          "next": "error",
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 600,
+          "y": 1900
+        },
+        "method": "POST",
+        "parameters": [
+          {
+            "value": "{{widgets.first_question.inbound.Body}} ",
+            "key": "question1"
+          },
+          {
+            "value": "{{widgets.second_question.inbound.Body}} ",
+            "key": "question2"
+          },
+          {
+            "value": "{{widgets.third_question.inbound.Body}} ",
+            "key": "question3"
+          },
+          {
+            "value": "sms",
+            "key": "channel"
+          },
+          {
+            "value": "After Care",
+            "key": "surveyType"
+          }
+        ],
+        "url": "https://xxxxxxxxxxxx.m.pipedream.net",
+        "timeout": 3600
+      }
+    },
+    {
+      "name": "prompt_for_survey_channel",
+      "type": "send-and-wait-for-reply",
+      "transitions": [
+        {
+          "next": "check_survey_channel",
+          "event": "incomingMessage"
+        },
+        {
+          "event": "timeout"
+        },
+        {
+          "next": "error",
+          "event": "deliveryFailure"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 920,
+          "y": 230
+        },
+        "service": "{{trigger.message.InstanceSid}}",
+        "channel": "{{trigger.message.ChannelSid}}",
+        "from": "{{flow.channel.address}}",
+        "body": "{{flow.variables.surveyPrompt}}",
+        "timeout": "3600"
+      }
+    },
+    {
+      "name": "check_survey_channel",
+      "type": "split-based-on",
+      "transitions": [
+        {
+          "next": "unknown_survey_channel",
+          "event": "noMatch"
+        },
+        {
+          "next": "first_question",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value equal_to 1",
+              "arguments": [
+                "{{widgets.prompt_for_survey_channel.inbound.Body}}"
+              ],
+              "type": "equal_to",
+              "value": "1"
+            }
+          ]
+        },
+        {
+          "next": "to_voice_survey",
+          "event": "match",
+          "conditions": [
+            {
+              "friendly_name": "If value equal_to 2",
+              "arguments": [
+                "{{widgets.prompt_for_survey_channel.inbound.Body}}"
+              ],
+              "type": "equal_to",
+              "value": "2"
+            }
+          ]
+        }
+      ],
+      "properties": {
+        "input": "{{widgets.prompt_for_survey_channel.inbound.Body}}",
+        "offset": {
+          "x": 920,
+          "y": 460
+        }
+      }
+    },
+    {
+      "name": "unknown_survey_channel",
+      "type": "send-message",
+      "transitions": [
+        {
+          "next": "prompt_for_survey_channel",
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 1340,
+          "y": 220
+        },
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "body": "I'm sorry, I didn't understand. Please enter either \"1\" or \"2\""
+      }
+    },
+    {
+      "name": "to_voice_survey",
+      "type": "run-function",
+      "transitions": [
+        {
+          "event": "success"
+        },
+        {
+          "next": "error",
+          "event": "fail"
+        }
+      ],
+      "properties": {
+        "service_sid": "ZSe22669429f18d4e2d4b7a2e5dc43ec2d",
+        "environment_sid": "ZE23edeb088a6b3f28431186d2371ee781",
+        "offset": {
+          "x": 530,
+          "y": 680
+        },
+        "function_sid": "ZH7c58dce43706af77357482d85181e8cb",
+        "parameters": [
+          {
+            "value": "FW9953b335a1b3b49991f58e9a7af2be9f",
+            "key": "flowSid"
+          },
+          {
+            "value": "{{widgets.prompt_for_survey_channel.inbound.To}}",
+            "key": "from"
+          },
+          {
+            "value": "{{contact.channel.address}}",
+            "key": "to"
+          }
+        ],
+        "url": "https://studio-ivr-functions-9959.twil.io/execute-studio-flow"
+      }
+    },
+    {
+      "name": "load_flow_data",
+      "type": "run-function",
+      "transitions": [
+        {
+          "next": "set_flow_data",
+          "event": "success"
+        },
+        {
+          "event": "fail"
+        }
+      ],
+      "properties": {
+        "service_sid": "ZSe22669429f18d4e2d4b7a2e5dc43ec2d",
+        "environment_sid": "ZE23edeb088a6b3f28431186d2371ee781",
+        "offset": {
+          "x": 430,
+          "y": 20
+        },
+        "function_sid": "ZHe128030685628eae395d4436ac13df9a",
+        "parameters": [
+          {
+            "value": "After Care",
+            "key": "surveyType"
+          },
+          {
+            "value": "sms",
+            "key": "channel"
+          }
+        ],
+        "url": "https://studio-ivr-functions-9959.twil.io/load-flow-data"
+      }
+    },
+    {
+      "name": "load_flow_data2",
+      "type": "run-function",
+      "transitions": [
+        {
+          "next": "set_flow_data2",
+          "event": "success"
+        },
+        {
+          "event": "fail"
+        }
+      ],
+      "properties": {
+        "service_sid": "ZSe22669429f18d4e2d4b7a2e5dc43ec2d",
+        "environment_sid": "ZE23edeb088a6b3f28431186d2371ee781",
+        "offset": {
+          "x": 40,
+          "y": 20
+        },
+        "function_sid": "ZHe128030685628eae395d4436ac13df9a",
+        "parameters": [
+          {
+            "value": "After Care",
+            "key": "surveyType"
+          },
+          {
+            "value": "sms",
+            "key": "channel"
+          }
+        ],
+        "url": "https://studio-ivr-functions-9959.twil.io/load-flow-data"
+      }
+    },
+    {
+      "name": "set_flow_data",
+      "type": "set-variables",
+      "transitions": [
+        {
+          "next": "prompt_for_survey_channel",
+          "event": "next"
+        }
+      ],
+      "properties": {
+        "variables": [
+          {
+            "value": "{{widgets.load_flow_data.parsed.surveyPrompt}}",
+            "key": "surveyPrompt"
+          },
+          {
+            "value": "{{widgets.load_flow_data.parsed.question1}}",
+            "key": "question1"
+          },
+          {
+            "value": "{{widgets.load_flow_data.parsed.question2}}",
+            "key": "question2"
+          },
+          {
+            "value": "{{widgets.load_flow_data.parsed.question3}}",
+            "key": "question3"
+          },
+          {
+            "value": "{{widgets.load_flow_data.parsed.thankYou}}",
+            "key": "thankYou"
+          }
+        ],
+        "offset": {
+          "x": 440,
+          "y": 230
+        }
+      }
+    },
+    {
+      "name": "set_flow_data2",
+      "type": "set-variables",
+      "transitions": [
+        {
+          "next": "first_question",
+          "event": "next"
+        }
+      ],
+      "properties": {
+        "variables": [
+          {
+            "value": "{{widgets.load_flow_data.parsed.question1}}",
+            "key": "question1"
+          },
+          {
+            "value": "{{widgets.load_flow_data.parsed.question2}}",
+            "key": "question2"
+          },
+          {
+            "value": "{{widgets.load_flow_data.parsed.question3}}",
+            "key": "question3"
+          },
+          {
+            "value": "{{widgets.load_flow_data.parsed.thankYou}}",
+            "key": "thankYou"
+          }
+        ],
+        "offset": {
+          "x": 40,
+          "y": 240
+        }
+      }
+    },
+    {
+      "name": "error",
+      "type": "send-message",
+      "transitions": [
+        {
+          "event": "sent"
+        },
+        {
+          "event": "failed"
+        }
+      ],
+      "properties": {
+        "offset": {
+          "x": 1270,
+          "y": 1370
+        },
+        "from": "{{flow.channel.address}}",
+        "to": "{{contact.channel.address}}",
+        "body": "Sorry. An error occured, and we are unable to complete your survey today. Thank you"
+      }
+    }
+  ],
+  "initial_state": "Trigger",
+  "flags": {
+    "allow_concurrent_calls": true
+  }
+}

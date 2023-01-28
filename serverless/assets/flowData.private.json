@@ -1,0 +1,19 @@
+[
+  {
+    "surveyType": "After Care",
+    "channel": "sms",
+    "surveyPrompt": "Please complete a quick survey about your recent visit. Reply 1 for an SMS survey. Reply 2 to receive an automated phone call",
+    "question1": "On a scale of 1-10, how would you rate today's session overall?",
+    "question2": "On a scale of 1-10, how likely are you to recommend us to a friend?",
+    "question3": "If there's any other feedback you have, please share it here. Otherwise, reply \"N\"",
+    "thankYou": "Thank you for your feedback!"
+  },
+  {
+    "surveyType": "After Care",
+    "channel": "voice",
+    "welcome": "Hello. Please use your phone's keypad to enter the numeric responses to the following survey questions. To skip a question, press the # key",
+    "question1": "Using your phone's keypad to enter a number between 1 and 10, how would you rate today's session overall?",
+    "question2": "Using your phone's keypad to enter a number between 1 and 10, how likely are you to recommend us to a friend?",
+    "thankYou": "Thank you for your feedback! Your call is complete... Goodbye!"
+  }
+]
